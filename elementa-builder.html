@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Elementa">
+<meta name="theme-color" content="#fafaf7">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elementa Builder</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: 'Courier New', monospace;
+  font-size: 13px; 
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f5f5f0;
+}
+.app { 
+  display: grid; 
+  grid-template-columns: 240px 1fr; 
+  height: 100vh; 
+  gap: 1px;
+  background: #e0e0d8;
+}
+.sidebar { 
+  background: #fafaf7; 
+  padding: 16px;
+  overflow-y: auto;
+  border-right: 0.5px solid #d0d0c8;
+}
+.sidebar h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+.nav-item {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-item:hover { background: #f0f0ea; }
+.nav-item.active { background: #e6f1fb; color: #185fa5; }
+.coverage { 
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #eaf3de;
+  color: #3b6d11;
+}
+.coverage.incomplete { background: #faeeda; color: #854f0b; }
+.main { 
+  background: #ffffff; 
+  padding: 24px;
+  overflow-y: auto;
+}
+.section {
+  border: 0.5px solid #d0d0c8;
+  border-radius: 8px;
+  background: #fafaf7;
+  padding: 16px;
+  min-height: 80px;
+}
+.drag-handle { cursor: move; color: #bbb; user-select: none; flex-shrink: 0; }
+.btn {
+  border: 0.5px solid #b0b0a8;
+  background: transparent;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.btn:hover { background: #f0f0ea; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #e6f1fb; color: #185fa5; border-color: #85b7eb; }
+.btn-danger { color: #991B1B; border-color: #FECACA; }
+.paragraph {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  cursor: move;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 0.5px solid #e8e8e4;
+  position: relative;
+  background: #ffffff;
+}
+.paragraph:hover .para-actions { display: flex; }
+.para-actions {
+  display: none;
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  gap: 4px;
+}
+.para-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  border: 0.5px solid #d0d0c8;
+  background: white;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.para-btn:hover { background: #f0f0ea; }
+/* NEW: green = mapped, red = excluded, white = normal */
+.paragraph.mapped { background: #f0fdf4; border-color: #86efac; }
+.paragraph.excluded { background: #FEF2F2; border-color: #FECACA; opacity: 0.65; }
+.paragraph-content { flex: 1; user-select: none; padding-right: 80px; }
+.para-num { font-size: 10px; color: #aaa; min-width: 22px; flex-shrink: 0; margin-top: 1px; }
+.superscript {
+  font-size: 9px;
+  vertical-align: super;
+  color: #185fa5;
+  font-weight: 600;
+  margin-left: 4px;
+}
+.heading {
+  font-weight: 600;
+  margin: 14px 0 6px 0;
+  color: #555;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: move;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.heading:hover { background: #f0f0ea; }
+.heading.level-1 { font-size: 14px; color: #333; }
+.heading.level-2 { margin-left: 16px; font-size: 12px; color: #666; }
+.count-section {
+  border: 0.5px solid #d0d0c8;
+  border-radius: 8px;
+  padding: 16px;
+}
+.element {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fafaf7;
+  border-radius: 6px;
+  border: 0.5px solid #d0d0c8;
+}
+.element-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fact-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 2px;
+  background: #e6f1fb;
+  color: #185fa5;
+  border-radius: 3px;
+  font-size: 10px;
+}
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 0.5px solid #b0b0a8;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: #ffffff;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+.input:focus { outline: none; border-color: #85b7eb; }
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: #fafaf7;
+  border-radius: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 580px;
+  width: 92%;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+.modal-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #555;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.element-para {
+  padding: 6px 10px;
+  margin: 4px 0;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 0.5px solid #e0e0d8;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  position: relative;
+}
+.element-para:hover .para-actions { display: flex; }
+
+/* ---- Caption Builder ---- */
+.caption-builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.caption-block {
+  border: 0.5px solid #d0d0c8;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafaf7;
+}
+.caption-block h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.party-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.party-badge {
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.party-badge.plaintiff { background: #dbeafe; color: #1e40af; }
+.party-badge.defendant { background: #fee2e2; color: #991b1b; }
+.party-badge.other { background: #f3e8ff; color: #6b21a8; }
+.caption-preview {
+  padding: 20px;
+  background: white;
+  border: 0.5px solid #d0d0c8;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  white-space: pre;
+  line-height: 1.9;
+  color: #222;
+}
+
+/* ---- Fact Mapper Collapsible Groups ---- */
+details.section-group { margin-bottom: 6px; }
+details.section-group summary {
+  cursor: pointer;
+  padding: 7px 10px;
+  background: #f5f5f0;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  border: 0.5px solid #e0e0d8;
+}
+details.section-group summary::-webkit-details-marker { display: none; }
+details.section-group summary::before {
+  content: '▶';
+  font-size: 8px;
+  color: #999;
+}
+details.section-group[open] summary::before { content: '▼'; }
+details.section-group .section-paras { padding: 4px 0 4px 8px; }
+.mapper-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  background: #fafaf7;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.mapper-row:hover { background: #f0f0ea; }
+.mapper-row.is-mapped { background: #f0fdf4; }
+.mapper-row input[type=checkbox] { margin-top: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <h2>Sections</h2>
+    <div id="nav"></div>
+    <button class="btn btn-primary" onclick="addSection()" style="width:100%;margin-top:8px;">+ Section</button>
+    
+    <h2 style="margin-top:24px;">Counts</h2>
+    <div id="count-nav"></div>
+    <button class="btn btn-primary" onclick="addCount()" style="width:100%;margin-top:8px;">+ Count</button>
+    
+    <h2 style="margin-top:24px;">View</h2>
+    <div id="view-nav">
+      <div class="nav-item" id="preview-nav-item" onclick="switchView('__preview__')" style="color:#555;">
+        <span>📄 Preview</span>
+      </div>
+    </div>
+
+    <h2 style="margin-top:24px;">File</h2>
+    <button class="btn" onclick="saveFile()" style="width:100%;margin-bottom:4px;">Save .complaint</button>
+    <button class="btn" onclick="loadFile()" style="width:100%;margin-bottom:4px;">Load File</button>
+    <button class="btn" onclick="exportMarkdown()" style="width:100%;margin-bottom:4px;">Export MD</button>
+    <button class="btn btn-danger" onclick="resetState()" style="width:100%;">New File</button>
+  </div>
+  
+  <div class="main" id="main"></div>
+</div>
+
+<div id="modal-root"></div>
+<input type="file" id="file-input" accept=".complaint" style="display:none;" onchange="handleFileLoad(event)">
+
+<script>
+let state = {
+  sections: [
+    {
+      id: 's1',
+      title: 'Caption',
+      order: 0,
+      isCaption: true,
+      isHidden: false,
+      items: [],
+      court: { state: '', courtType: 'DISTRICT COURT', district: '', county: '', fileNo: '' },
+      parties: [],
+      showSectionNumber: false,
+      showParaNumbers: false
+    },
+  ],
+  counts: [],
+  currentView: 's1'
+};
+
+let draggedItem = null;
+let navDragId = null;
+let navDragType = null;
+let draggedElemPara = null;
+
+// ---- Load / Migrate ----
+try {
+  const saved = localStorage.getItem('complaint_state');
+  if (saved) {
+    const loaded = JSON.parse(saved);
+    if (loaded.sections) {
+      loaded.sections.forEach(s => {
+        if (s.showSectionNumber === undefined) s.showSectionNumber = !s.isCaption;
+        if (s.showParaNumbers === undefined)   s.showParaNumbers   = !s.isCaption;
+        if (s.isHidden === undefined)          s.isHidden          = false;
+        if (!s.court)   s.court   = { state:'', courtType:'DISTRICT COURT', district:'', county:'', fileNo:'' };
+        if (!s.parties) s.parties = [];
+        if (s.items) s.items.forEach(item => {
+          if (item.type === 'paragraph') {
+            if (!item.mappedTo) item.mappedTo = [];
+            if (!item.status)   item.status   = 'unmapped';
+          }
+        });
+      });
+    }
+    state = loaded;
+  }
+} catch(e) { console.warn('State load failed', e); }
+
+function save() {
+  localStorage.setItem('complaint_state', JSON.stringify(state));
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function romanNumeral(n) {
+  const v = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let r = '';
+  v.forEach(([val,sym]) => { while(n>=val){r+=sym;n-=val;} });
+  return r||n;
+}
+
+// ---- Para number helpers ----
+function getGlobalParaStart(sectionId) {
+  let num = 1;
+  const sorted = [...state.sections].sort((a,b)=>a.order-b.order);
+  for (const s of sorted) {
+    if (s.id === sectionId) break; // stop before counting this section
+    if (s.isCaption || s.showParaNumbers === false) continue;
+    num += s.items.filter(i => i.type==='paragraph' && i.status!=='excluded').length;
+  }
+  return num;
+}
+
+// ---- Render ----
+function render() { renderNav(); renderMain(); }
+
+function renderNav() {
+  // Compute roman numerals for numbered sections
+  let secRoman = 0;
+  const sortedSections = [...state.sections].sort((a,b)=>a.order-b.order);
+  sortedSections.forEach(s => {
+    s._navRoman = (!s.isCaption && s.showSectionNumber !== false) ? romanNumeral(++secRoman) : null;
+  });
+
+  document.getElementById('nav').innerHTML = sortedSections.map(s => {
+    if (s.isCaption) {
+      const hiddenBadge = s.isHidden ? '<span style="font-size:9px;color:#aaa;margin-left:4px;">[hidden]</span>' : '';
+      return `
+        <div class="nav-item ${state.currentView===s.id?'active':''}" onclick="switchView('${s.id}')">
+          <span style="flex:1;color:#888;">⊞ ${esc(s.title)}${hiddenBadge}</span>
+        </div>`;
+    }
+    const numBadge = s._navRoman
+      ? `<span style="font-size:9px;color:#aaa;font-weight:700;min-width:18px;flex-shrink:0;">${s._navRoman}.</span>`
+      : `<span style="min-width:18px;flex-shrink:0;"></span>`;
+    return `
+      <div class="nav-item ${state.currentView===s.id?'active':''}"
+           draggable="true" data-nav-id="${s.id}" data-nav-type="section"
+           onclick="switchView('${s.id}')">
+        <span class="drag-handle" style="font-size:10px;margin-right:2px;" onclick="event.stopPropagation()">≡</span>
+        ${numBadge}
+        <span style="flex:1;">${esc(s.title)}</span>
+        <span style="font-size:10px;color:#aaa;">${s.items.length}</span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('count-nav').innerHTML = state.counts.map((c,ci) => {
+    const covered = c.elements.filter(e=>e.mappedFacts&&e.mappedFacts.length>0).length;
+    const total = c.elements.length;
+    const ok = covered===total && total>0;
+    return `
+      <div class="nav-item ${state.currentView===c.id?'active':''}"
+           draggable="true" data-nav-id="${c.id}" data-nav-type="count"
+           onclick="switchView('${c.id}')">
+        <span class="drag-handle" style="font-size:10px;margin-right:4px;" onclick="event.stopPropagation()">≡</span>
+        <span style="flex:1;">${esc(c.title)}</span>
+        <span class="coverage ${ok?'':'incomplete'}">${covered}/${total}</span>
+      </div>`;
+  }).join('');
+
+  // Preview nav highlight
+  const previewItem = document.getElementById('preview-nav-item');
+  if (previewItem) previewItem.className = 'nav-item' + (state.currentView==='__preview__'?' active':'');
+
+  // Attach nav drag-and-drop
+  document.querySelectorAll('[data-nav-type]').forEach(el => {
+    el.addEventListener('dragstart', handleNavDragStart);
+    el.addEventListener('dragover',  handleNavDragOver);
+    el.addEventListener('drop',      handleNavDrop);
+    el.addEventListener('dragend',   handleNavDragEnd);
+  });
+}
+
+function renderMain() {
+  const main = document.getElementById('main');
+  if (state.currentView === '__preview__') { renderPreview(main); return; }
+  const sec = state.sections.find(s=>s.id===state.currentView);
+  if (sec) { sec.isCaption ? renderCaption(main,sec) : renderSection(main,sec); return; }
+  const count = state.counts.find(c=>c.id===state.currentView);
+  if (count) { renderCount(main,count); return; }
+  main.innerHTML = '<div style="color:#999;padding:48px;text-align:center;">Select a section or count to get started.</div>';
+}
+
+// ---- Caption ----
+function buildCaptionText(section) {
+  const c = section.court||{};
+  const parties = section.parties||[];
+  let t = '';
+  if(c.state)    t += c.state+'\n';
+  if(c.courtType)t += c.courtType+'\n';
+  if(c.district) t += c.district+'\n';
+  if(c.county)   t += c.county+'\n';
+  if(t) t += '\n';
+  t += 'Court File No.: '+(c.fileNo||'__________')+'\n\n';
+  const pls = parties.filter(p=>p.role==='Plaintiff');
+  const dfs = parties.filter(p=>p.role==='Defendant');
+  const oth = parties.filter(p=>p.role!=='Plaintiff'&&p.role!=='Defendant');
+  pls.forEach((p,i)=>{
+    t += (p.name||'[Plaintiff Name]')+',\n';
+    if(i===pls.length-1) t += 'Plaintiff'+(pls.length>1?'s':'')+',\n\n';
+  });
+  if(pls.length||dfs.length) t += 'v.\n\n';
+  dfs.forEach((p,i)=>{
+    t += (p.name||'[Defendant Name]')+',\n';
+    if(i===dfs.length-1) t += 'Defendant'+(dfs.length>1?'s':'')+'.\n____________________/';
+  });
+  oth.forEach(p=>{ t += '\n'+(p.name||'[Party]')+', '+(p.role||'Other')+','; });
+  return t || '(Fill in the fields above to preview the caption)';
+}
+
+function renderCaption(main, section) {
+  const c = section.court||{};
+  const parties = section.parties||[];
+  const isHidden = section.isHidden || false;
+  main.innerHTML = `
+    <div class="toolbar">
+      <span style="font-weight:700;font-size:13px;">⊞ Caption / Header</span>
+      <span style="flex:1;"></span>
+      <label class="checkbox-label">
+        <input type="checkbox" ${isHidden?'checked':''} onchange="toggleCaptionHidden('${section.id}',this.checked)">
+        Hide from export
+      </label>
+    </div>
+    ${isHidden ? '<div style="background:#fffbeb;border:0.5px solid #fde68a;border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:#92400e;">Caption is hidden — it will be excluded from export and preview.</div>' : ''}
+    <div class="caption-builder">
+      <div class="caption-block">
+        <h3>Court Information</h3>
+        <input class="input" placeholder="State (e.g., STATE OF MINNESOTA)"          value="${esc(c.state)}"     oninput="updateCaptionField('${section.id}','state',this.value)">
+        <input class="input" placeholder="Court type (e.g., DISTRICT COURT)"         value="${esc(c.courtType)}" oninput="updateCaptionField('${section.id}','courtType',this.value)">
+        <input class="input" placeholder="District (e.g., SECOND JUDICIAL DISTRICT)" value="${esc(c.district)}"  oninput="updateCaptionField('${section.id}','district',this.value)">
+        <input class="input" placeholder="County (e.g., COUNTY OF RAMSEY)"           value="${esc(c.county)}"    oninput="updateCaptionField('${section.id}','county',this.value)">
+        <input class="input" placeholder="Case / File Number"                         value="${esc(c.fileNo)}"    oninput="updateCaptionField('${section.id}','fileNo',this.value)" style="margin-bottom:0;">
+      </div>
+      <div class="caption-block">
+        <h3>Parties</h3>
+        ${parties.map((p,i)=>`
+          <div class="party-row">
+            <span class="party-badge ${p.role==='Plaintiff'?'plaintiff':p.role==='Defendant'?'defendant':'other'}">${esc(p.role)}</span>
+            <input class="input" style="flex:1;margin:0;" value="${esc(p.name)}" placeholder="${p.role} name" oninput="updateParty('${section.id}',${i},this.value)">
+            <button class="para-btn" onclick="deleteParty('${section.id}',${i})">×</button>
+          </div>`).join('')}
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="addParty('${section.id}','Plaintiff')">+ Plaintiff</button>
+          <button class="btn" style="border-color:#FECACA;color:#991b1b;" onclick="addParty('${section.id}','Defendant')">+ Defendant</button>
+          <button class="btn" onclick="promptAddParty('${section.id}')">+ Other</button>
+        </div>
+      </div>
+    </div>
+    <div class="caption-preview" id="caption-preview">${esc(buildCaptionText(section))}</div>`;
+}
+
+function updateCaptionField(id, field, val) {
+  const s = state.sections.find(s=>s.id===id); if(!s) return;
+  if(!s.court) s.court={};
+  s.court[field] = val;
+  save();
+  const el = document.getElementById('caption-preview');
+  if(el) el.textContent = buildCaptionText(s);
+}
+
+function addParty(id, role) {
+  const s = state.sections.find(s=>s.id===id); if(!s) return;
+  if(!s.parties) s.parties=[];
+  s.parties.push({name:'', role});
+  save(); render();
+}
+
+function promptAddParty(id) {
+  const role = prompt('Party role (e.g., Intervenor, Cross-Defendant):');
+  if(role) addParty(id, role);
+}
+
+function updateParty(id, idx, val) {
+  const s = state.sections.find(s=>s.id===id); if(!s||!s.parties[idx]) return;
+  s.parties[idx].name = val;
+  save();
+  const el = document.getElementById('caption-preview');
+  if(el) el.textContent = buildCaptionText(s);
+}
+
+function deleteParty(id, idx) {
+  const s = state.sections.find(s=>s.id===id); if(!s) return;
+  s.parties.splice(idx,1);
+  save(); render();
+}
+
+// ---- Regular Section ----
+function renderSection(main, section) {
+  const showSecNum  = section.showSectionNumber !== false;
+  const showParaNum = section.showParaNumbers   !== false;
+
+  main.innerHTML = `
+    <div class="toolbar">
+      <input class="input" value="${esc(section.title)}" onchange="updateSectionTitle('${section.id}',this.value)"
+             style="flex:1;max-width:260px;margin:0;">
+      <label class="checkbox-label" title="Show roman numeral before section title in export">
+        <input type="checkbox" ${showSecNum?'checked':''} onchange="toggleSectionNumber('${section.id}',this.checked)">
+        § Numbered
+      </label>
+      <label class="checkbox-label" title="Number paragraphs in this section">
+        <input type="checkbox" ${showParaNum?'checked':''} onchange="toggleParaNumbers('${section.id}',this.checked)">
+        ¶ Numbered
+      </label>
+      <button class="btn" onclick="addParagraph()">+ Paragraph</button>
+      <button class="btn" onclick="addHeading(1)">+ Heading</button>
+      <button class="btn" onclick="addHeading(2)">+ Subheading</button>
+      <button class="btn btn-danger" onclick="deleteSection('${section.id}')">Delete</button>
+    </div>
+    <div class="section"><div id="items"></div>${section.items.length===0?'<div style="color:#ccc;text-align:center;padding:32px;font-size:12px;">No items yet.</div>':''}</div>`;
+
+  let localNum = getGlobalParaStart(section.id);
+  const itemsEl = document.getElementById('items');
+
+  itemsEl.innerHTML = [...section.items].sort((a,b)=>a.order-b.order).map(item => {
+    if(item.type==='heading') {
+      return `
+        <div class="heading level-${item.level}" draggable="true" data-id="${item.id}" data-type="heading">
+          <span class="drag-handle">≡</span>
+          <span style="flex:1;">${esc(item.content)}</span>
+          <button class="para-btn" onclick="editHeading('${item.id}')">Edit</button>
+          <button class="para-btn" onclick="deleteItem('${item.id}')">×</button>
+        </div>`;
+    }
+    const status = item.status||'unmapped';
+    const mappedTo = item.mappedTo||[];
+    const sups = mappedTo.map(cid=>{
+      const cnt = state.counts.find(c=>c.id===cid);
+      return cnt ? romanNumeral(state.counts.indexOf(cnt)+1) : '';
+    }).filter(Boolean).join(',');
+
+    let numLabel = '';
+    if(showParaNum && status!=='excluded') {
+      numLabel = `<span class="para-num">${localNum}.</span>`;
+      localNum++;
+    } else if(showParaNum && status==='excluded') {
+      numLabel = `<span class="para-num" style="color:#ddd;">${localNum}.</span>`;
+      // don't increment — excluded don't count in global numbering
+    }
+
+    return `
+      <div class="paragraph ${status}" draggable="true" data-id="${item.id}" data-type="paragraph">
+        <span class="drag-handle">≡</span>
+        ${numLabel}
+        <div class="paragraph-content">
+          ${esc(item.content)}${sups?`<span class="superscript">${sups}</span>`:''}
+        </div>
+        <div class="para-actions">
+          <button class="para-btn" onclick="editParagraph('${item.id}')">Edit</button>
+          <button class="para-btn" onclick="toggleExcluded('${item.id}')">${status==='excluded'?'Include':'Exclude'}</button>
+          <button class="para-btn" onclick="deleteItem('${item.id}')">×</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.querySelectorAll('[draggable="true"]').forEach(el => {
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragover',  handleDragOver);
+    el.addEventListener('drop',      handleDrop);
+    el.addEventListener('dragend',   handleDragEnd);
+  });
+}
+
+// ---- Count ----
+function renderCount(main, count) {
+  main.innerHTML = `
+    <div class="toolbar">
+      <input class="input" value="${esc(count.title)}" onchange="updateCountTitle('${count.id}',this.value)" style="flex:1;max-width:300px;margin:0;">
+      <button class="btn" onclick="addElement()">+ Element</button>
+      <button class="btn btn-danger" onclick="deleteCount('${count.id}')">Delete Count</button>
+    </div>
+    <div class="count-section"><div id="elements"></div></div>`;
+
+  document.getElementById('elements').innerHTML = count.elements.map((elem,idx)=>{
+    const mapped = elem.mappedFacts||[];
+    const paras  = elem.paragraphs||[];
+    const paraStartNum = getElemParaStartNum(count.id, idx);
+    return `
+      <div class="element">
+        <div class="element-header">
+          <input class="input" value="${esc(elem.content)}" onchange="updateElement('${count.id}',${idx},this.value)"
+                 style="flex:1;margin:0;font-size:11px;color:#555;">
+          <button class="btn" onclick="openFactMapper('${count.id}',${idx})">Map Facts</button>
+          <button class="btn" onclick="addElementParagraph('${count.id}',${idx})">+ Para</button>
+          <button class="para-btn" onclick="deleteElement('${count.id}',${idx})">×</button>
+        </div>
+        <div style="margin-bottom:8px;">
+          ${mapped.map(fid=>{ const f=findFact(fid); return f?`<span class="fact-tag">¶${f.displayNum}</span>`:''; }).join('')}
+          ${mapped.length===0?'<span style="color:#bbb;font-size:11px;">No facts mapped</span>':''}
+        </div>
+        ${paras.length?'<div style="border-top:0.5px solid #e0e0d8;padding-top:8px;margin-top:8px;"></div>':''}
+        ${paras.map((p,pidx)=>{
+          const pNum = paraStartNum + pidx;
+          return `<div class="element-para" draggable="true"
+                       data-ep-count="${count.id}" data-ep-elem="${idx}" data-ep-idx="${pidx}">
+              <span class="drag-handle" style="font-size:11px;">≡</span>
+              <span class="para-num">${pNum}.</span>
+              <div style="flex:1;">${esc(p.content)}</div>
+              <div class="para-actions">
+                <button class="para-btn" onclick="editElementParagraph('${count.id}',${idx},${pidx})">Edit</button>
+                <button class="para-btn" onclick="deleteElementParagraph('${count.id}',${idx},${pidx})">×</button>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+
+  // Attach element-para drag listeners
+  document.querySelectorAll('[data-ep-count]').forEach(el => {
+    el.addEventListener('dragstart', handleElemParaDragStart);
+    el.addEventListener('dragover',  handleElemParaDragOver);
+    el.addEventListener('drop',      handleElemParaDrop);
+    el.addEventListener('dragend',   handleElemParaDragEnd);
+  });
+}
+
+// ---- Section actions ----
+function switchView(id) { state.currentView = id; render(); }
+
+function addSection() {
+  const title = prompt('Section title:'); if(!title) return;
+  state.sections.push({
+    id:'s'+Date.now(), title, order:state.sections.length,
+    items:[], showSectionNumber:true, showParaNumbers:true,
+    court:{state:'',courtType:'DISTRICT COURT',district:'',county:'',fileNo:''}, parties:[]
+  });
+  save(); render();
+}
+
+function deleteSection(id) {
+  if(!confirm('Delete this section? All items will be lost.')) return;
+  state.sections = state.sections.filter(s=>s.id!==id);
+  if(state.currentView===id) state.currentView = state.sections[0]?.id||'';
+  save(); render();
+}
+
+function updateSectionTitle(id, val) {
+  const s = state.sections.find(s=>s.id===id); if(s){ s.title=val; save(); renderNav(); }
+}
+function toggleSectionNumber(id, checked) {
+  const s = state.sections.find(s=>s.id===id); if(s){ s.showSectionNumber=checked; save(); }
+}
+function toggleParaNumbers(id, checked) {
+  const s = state.sections.find(s=>s.id===id); if(s){ s.showParaNumbers=checked; save(); render(); }
+}
+
+// ---- Paragraph actions ----
+function addParagraph() {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  const content = prompt('Paragraph content:'); if(!content) return;
+  sec.items.push({id:'p'+Date.now(), type:'paragraph', content, order:sec.items.length, status:'unmapped', mappedTo:[]});
+  save(); render();
+}
+
+function editParagraph(id) {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  const p = sec.items.find(i=>i.id===id); if(!p) return;
+  const v = prompt('Edit paragraph:',p.content); if(v!==null){p.content=v;save();render();}
+}
+
+function toggleExcluded(id) {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  const p = sec.items.find(i=>i.id===id); if(!p) return;
+  p.status = p.status==='excluded' ? ((p.mappedTo?.length>0)?'mapped':'unmapped') : 'excluded';
+  save(); render();
+}
+
+function deleteItem(id) {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  if(!confirm('Delete this item?')) return;
+  sec.items = sec.items.filter(i=>i.id!==id);
+  save(); render();
+}
+
+// ---- Heading actions ----
+function addHeading(level) {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  const content = prompt('Heading content:'); if(!content) return;
+  sec.items.push({id:'h'+Date.now(), type:'heading', level, content, order:sec.items.length});
+  save(); render();
+}
+
+function editHeading(id) {
+  const sec = state.sections.find(s=>s.id===state.currentView); if(!sec) return;
+  const h = sec.items.find(i=>i.id===id); if(!h) return;
+  const v = prompt('Edit heading:',h.content); if(v!==null){h.content=v;save();render();}
+}
+
+// ---- Count / Element actions ----
+function addCount() {
+  const title = prompt('Count title (e.g., "Count I — Breach of Contract"):'); if(!title) return;
+  state.counts.push({id:'c'+Date.now(), title, elements:[]});
+  save(); render();
+}
+
+function deleteCount(id) {
+  if(!confirm('Delete this count?')) return;
+  state.counts = state.counts.filter(c=>c.id!==id);
+  state.currentView = state.sections[0]?.id||'';
+  save(); render();
+}
+
+function updateCountTitle(id, val) {
+  const c = state.counts.find(c=>c.id===id); if(c){c.title=val;save();renderNav();}
+}
+
+function addElement() {
+  const count = state.counts.find(c=>c.id===state.currentView); if(!count) return;
+  const content = prompt('Element (e.g., "Valid contract existed"):'); if(!content) return;
+  count.elements.push({id:'e'+Date.now(), content, mappedFacts:[], paragraphs:[]});
+  save(); render();
+}
+
+function deleteElement(countId, idx) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  if(!confirm('Delete this element?')) return;
+  count.elements.splice(idx,1); save(); render();
+}
+
+function updateElement(countId, idx, val) {
+  const count = state.counts.find(c=>c.id===countId);
+  if(count&&count.elements[idx]) { count.elements[idx].content=val; save(); }
+}
+
+function addElementParagraph(countId, idx) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  const elem = count.elements[idx]; if(!elem) return;
+  const content = prompt('Paragraph content:'); if(!content) return;
+  if(!elem.paragraphs) elem.paragraphs=[];
+  elem.paragraphs.push({id:'ep'+Date.now(), content, order:elem.paragraphs.length});
+  save(); render();
+}
+
+function editElementParagraph(countId, idx, pidx) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  const p = count.elements[idx]?.paragraphs[pidx]; if(!p) return;
+  const v = prompt('Edit paragraph:',p.content); if(v!==null){p.content=v;save();render();}
+}
+
+function deleteElementParagraph(countId, idx, pidx) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  if(!confirm('Delete this paragraph?')) return;
+  count.elements[idx].paragraphs.splice(pidx,1); save(); render();
+}
+
+// ---- Fact Mapper — now spans ALL sections ----
+function openFactMapper(countId, elemIdx) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  const elem  = count.elements[elemIdx];               if(!elem)  return;
+  const mapped = elem.mappedFacts||[];
+
+  // Build section groups with global para numbers
+  let gNum = 1;
+  const groups = [...state.sections]
+    .sort((a,b)=>a.order-b.order)
+    .filter(s=>!s.isCaption && s.items && s.showParaNumbers !== false)
+    .map(s => {
+      const paras = s.items.filter(i=>i.type==='paragraph').map(item=>{
+        const showNum = s.showParaNumbers !== false;
+        const displayNum = showNum ? gNum : '¶';
+        if(showNum) gNum++;
+        return { id:item.id, content:item.content, displayNum };
+      });
+      return { sectionTitle: s.title, paras };
+    })
+    .filter(g=>g.paras.length>0);
+
+  const modal = document.getElementById('modal-root');
+  modal.innerHTML = `
+    <div class="modal" onclick="if(event.target===this)closeModal()">
+      <div class="modal-content">
+        <div class="modal-title">Map Facts → Element</div>
+        <div style="font-size:12px;color:#666;margin-bottom:16px;font-style:italic;">${esc(elem.content)}</div>
+        <div style="max-height:420px;overflow-y:auto;">
+          ${groups.length===0?'<p style="color:#999;font-size:12px;">No paragraphs found in any section.</p>':''}
+          ${groups.map(g=>{
+            const anyChecked = g.paras.some(p=>mapped.includes(p.id));
+            return `
+              <details class="section-group"${anyChecked?' open':''}>
+                <summary>
+                  ${esc(g.sectionTitle)}
+                  <span style="color:#aaa;font-weight:400;margin-left:4px;">(${g.paras.length})</span>
+                  ${anyChecked?'<span style="margin-left:auto;color:#16a34a;font-size:9px;font-weight:700;">● mapped</span>':''}
+                </summary>
+                <div class="section-paras">
+                  ${g.paras.map(p=>{
+                    const chk = mapped.includes(p.id);
+                    return `
+                      <label class="mapper-row${chk?' is-mapped':''}">
+                        <input type="checkbox" ${chk?'checked':''} onchange="toggleFactMapping('${countId}',${elemIdx},'${p.id}',this.checked,this)">
+                        <span><strong>¶${p.displayNum}</strong> — ${esc(p.content.substring(0,130))}${p.content.length>130?'…':''}</span>
+                      </label>`;
+                  }).join('')}
+                </div>
+              </details>`;
+          }).join('')}
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="closeModal()">Done</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleFactMapping(countId, elemIdx, factId, checked, checkbox) {
+  const count = state.counts.find(c=>c.id===countId); if(!count) return;
+  const elem  = count.elements[elemIdx];               if(!elem)  return;
+  if(!elem.mappedFacts) elem.mappedFacts=[];
+
+  if(checked) { if(!elem.mappedFacts.includes(factId)) elem.mappedFacts.push(factId); }
+  else         { elem.mappedFacts = elem.mappedFacts.filter(id=>id!==factId); }
+
+  // Update paragraph status across ALL sections
+  state.sections.forEach(s=>{
+    if(!s.items) return;
+    s.items.forEach(item=>{
+      if(item.id!==factId) return;
+      if(!item.mappedTo) item.mappedTo=[];
+      if(checked){
+        if(!item.mappedTo.includes(countId)) item.mappedTo.push(countId);
+        item.status='mapped';
+      } else {
+        item.mappedTo = item.mappedTo.filter(id=>id!==countId);
+        item.status = item.mappedTo.length>0 ? 'mapped' : 'unmapped';
+      }
+    });
+  });
+
+  // Update row styling inline without re-rendering entire modal
+  if(checkbox) {
+    const row = checkbox.closest('label');
+    if(row) row.className = 'mapper-row'+(checked?' is-mapped':'');
+    // Update the section group "mapped" indicator
+    const details = checkbox.closest('details');
+    if(details) {
+      const summary = details.querySelector('summary');
+      const indicator = summary.querySelector('.mapped-indicator');
+      const anyChecked = details.querySelectorAll('input[type=checkbox]:checked').length>0;
+      if(anyChecked && !indicator) {
+        const span = document.createElement('span');
+        span.className='mapped-indicator';
+        span.style='margin-left:auto;color:#16a34a;font-size:9px;font-weight:700;';
+        span.textContent='● mapped';
+        summary.appendChild(span);
+      } else if(!anyChecked && indicator) {
+        indicator.remove();
+      }
+    }
+  }
+
+  save();
+  renderNav(); // update sidebar counts
+}
+
+function closeModal() {
+  document.getElementById('modal-root').innerHTML='';
+  render();
+}
+
+function findFact(id) {
+  let gNum=1, found=null;
+  [...state.sections].sort((a,b)=>a.order-b.order).forEach(s=>{
+    if(s.isCaption||!s.items) return;
+    s.items.forEach(item=>{
+      if(item.type!=='paragraph') return;
+      const showNum = s.showParaNumbers!==false;
+      const n = showNum ? gNum : '?';
+      if(showNum) gNum++;
+      if(item.id===id) found={...item, displayNum:n};
+    });
+  });
+  return found;
+}
+
+// ---- Drag and Drop ----
+function handleDragStart(e) { draggedItem=e.target.dataset.id; e.target.style.opacity='0.4'; }
+function handleDragOver(e)  { e.preventDefault(); }
+function handleDrop(e) {
+  e.preventDefault();
+  const targetId = e.currentTarget.dataset.id;
+  const sec = state.sections.find(s=>s.id===state.currentView);
+  if(!sec||!draggedItem) return;
+  const di = sec.items.findIndex(i=>i.id===draggedItem);
+  const ti = sec.items.findIndex(i=>i.id===targetId);
+  if(di===-1||ti===-1) return;
+  const [removed] = sec.items.splice(di,1);
+  sec.items.splice(ti,0,removed);
+  sec.items.forEach((item,i)=>item.order=i);
+  save(); render();
+}
+function handleDragEnd(e) { e.target.style.opacity='1'; draggedItem=null; }
+
+// ---- File I/O ----
+function saveFile() {
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='complaint.complaint'; a.click();
+}
+function loadFile() { document.getElementById('file-input').click(); }
+function handleFileLoad(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const loaded = JSON.parse(ev.target.result);
+      if(loaded.sections) loaded.sections.forEach(s=>{
+        if(s.showSectionNumber===undefined) s.showSectionNumber=true;
+        if(s.showParaNumbers===undefined)   s.showParaNumbers=true;
+        if(!s.court)   s.court={state:'',courtType:'DISTRICT COURT',district:'',county:'',fileNo:''};
+        if(!s.parties) s.parties=[];
+        if(s.items) s.items.forEach(item=>{
+          if(item.type==='paragraph'){
+            if(!item.mappedTo) item.mappedTo=[];
+            if(!item.status)   item.status='unmapped';
+          }
+        });
+      });
+      state=loaded; save(); render();
+    } catch(err) { alert('Error loading file: '+err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ---- Markdown generator (shared by export + preview) ----
+function generateMarkdown() {
+  let md = '';
+  let paraNum = 1;
+  let sectionRoman = 0;
+
+  [...state.sections].sort((a,b)=>a.order-b.order).forEach(section=>{
+    if (section.isCaption) {
+      if (!section.isHidden) md += buildCaptionText(section)+'\n\n';
+      return;
+    }
+    const showSecNum  = section.showSectionNumber !== false;
+    const showParaNum = section.showParaNumbers   !== false;
+
+    if (showSecNum) { sectionRoman++; md += `# ${romanNumeral(sectionRoman)}. ${section.title.toUpperCase()}\n\n`; }
+    else            {                  md += `# ${section.title.toUpperCase()}\n\n`; }
+
+    [...section.items].sort((a,b)=>a.order-b.order).forEach(item=>{
+      if (item.status==='excluded') return;
+      if (item.type==='heading') {
+        md += item.level===1 ? `## ${item.content}\n\n` : `### ${item.content}\n\n`;
+      } else if (item.type==='paragraph') {
+        md += showParaNum ? `${paraNum}. ${item.content}\n\n` : `${item.content}\n\n`;
+        if (showParaNum) paraNum++;
+      }
+    });
+  });
+
+  state.counts.forEach(count=>{
+    md += `# ${count.title.toUpperCase()}\n\n`;
+    count.elements.forEach(elem=>{
+      (elem.paragraphs||[]).forEach(p=>{ md+=`${paraNum}. ${p.content}\n\n`; paraNum++; });
+    });
+    md+='\n';
+  });
+
+  return md;
+}
+
+// ---- Export Markdown ----
+function exportMarkdown() {
+  const md = generateMarkdown();
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+  a.download='complaint.md'; a.click();
+}
+
+// ---- Preview ----
+function renderPreview(main) {
+  const md = generateMarkdown();
+
+  // Convert markdown to styled HTML
+  const lines = md.split('\n');
+  let html = '';
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('### ')) {
+      html += `<h3 style="font-size:12px;font-weight:700;text-transform:uppercase;margin:16px 0 6px;letter-spacing:0.5px;color:#555;">${esc(line.slice(4))}</h3>`;
+    } else if (line.startsWith('## ')) {
+      html += `<h2 style="font-size:13px;font-weight:700;text-align:center;margin:20px 0 10px;text-transform:uppercase;letter-spacing:1px;">${esc(line.slice(3))}</h2>`;
+    } else if (line.startsWith('# ')) {
+      html += `<h1 style="font-size:14px;font-weight:700;text-align:center;margin:28px 0 14px;text-transform:uppercase;letter-spacing:1px;border-top:0.5px solid #ddd;padding-top:20px;">${esc(line.slice(2))}</h1>`;
+    } else if (/^\d+\.\s/.test(line)) {
+      const m = line.match(/^(\d+)\.\s(.*)/);
+      if (m) html += `<p style="margin:0 0 10px;padding-left:32px;text-indent:-32px;"><span style="display:inline-block;width:32px;color:#999;font-size:11px;">${m[1]}.</span>${esc(m[2])}</p>`;
+    } else if (line.trim() === '') {
+      // skip blanks (handled by margins)
+    } else {
+      // Caption / preformatted block: if it looks like a caption line
+      html += `<p style="margin:0 0 4px;white-space:pre-wrap;">${esc(line)}</p>`;
+    }
+    i++;
+  }
+
+  main.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <span style="font-weight:700;font-size:13px;">📄 Document Preview</span>
+      <button class="btn btn-primary" onclick="exportMarkdown()" style="margin-left:auto;">Export MD</button>
+    </div>
+    <div style="background:#fff;border:0.5px solid #d0d0c8;border-radius:8px;padding:48px 64px;max-width:760px;margin:0 auto;font-family:'Times New Roman',serif;font-size:13px;line-height:1.8;color:#111;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      ${html || '<div style="color:#ccc;text-align:center;padding:48px;font-family:monospace;font-size:12px;">No content yet — add sections and paragraphs to see a preview.</div>'}
+    </div>`;
+}
+
+// ---- Caption hide/show ----
+function toggleCaptionHidden(id, checked) {
+  const s = state.sections.find(s=>s.id===id); if(!s) return;
+  s.isHidden = checked;
+  save(); render();
+}
+
+// ---- Reset / New File ----
+function resetState() {
+  if (!confirm('Start a new file? All current content will be cleared.')) return;
+  state = {
+    sections: [{
+      id: 's1', title: 'Caption', order: 0, isCaption: true, isHidden: false,
+      items: [], court: { state:'', courtType:'DISTRICT COURT', district:'', county:'', fileNo:'' },
+      parties: [], showSectionNumber: false, showParaNumbers: false
+    }],
+    counts: [],
+    currentView: 's1'
+  };
+  save(); render();
+}
+
+// ---- Global para number for element paragraphs ----
+function getElemParaStartNum(countId, elemIdx) {
+  let num = 1;
+  [...state.sections].sort((a,b)=>a.order-b.order).forEach(s => {
+    if (s.isCaption || s.showParaNumbers === false) return;
+    num += s.items.filter(i => i.type==='paragraph' && i.status!=='excluded').length;
+  });
+  for (const count of state.counts) {
+    const isTarget = count.id === countId;
+    for (let ei = 0; ei < count.elements.length; ei++) {
+      if (isTarget && ei === elemIdx) return num;
+      num += (count.elements[ei].paragraphs || []).length;
+    }
+    if (isTarget) break;
+  }
+  return num;
+}
+
+// ---- Nav drag: reorder sections and counts ----
+function handleNavDragStart(e) {
+  navDragId   = e.currentTarget.dataset.navId;
+  navDragType = e.currentTarget.dataset.navType;
+  e.currentTarget.style.opacity = '0.4';
+  e.stopPropagation();
+}
+function handleNavDragOver(e) { e.preventDefault(); e.stopPropagation(); }
+function handleNavDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  const targetId   = e.currentTarget.dataset.navId;
+  const targetType = e.currentTarget.dataset.navType;
+  if (!navDragId || navDragId === targetId || navDragType !== targetType) return;
+  if (navDragType === 'section') {
+    const nonCaption = [...state.sections].filter(s=>!s.isCaption).sort((a,b)=>a.order-b.order);
+    const di = nonCaption.findIndex(s=>s.id===navDragId);
+    const ti = nonCaption.findIndex(s=>s.id===targetId);
+    if (di===-1 || ti===-1) return;
+    const [rem] = nonCaption.splice(di, 1);
+    nonCaption.splice(ti, 0, rem);
+    const cap = state.sections.find(s=>s.isCaption);
+    if (cap) cap.order = 0;
+    nonCaption.forEach((s,i) => s.order = i + 1);
+  } else if (navDragType === 'count') {
+    const di = state.counts.findIndex(c=>c.id===navDragId);
+    const ti = state.counts.findIndex(c=>c.id===targetId);
+    if (di===-1 || ti===-1) return;
+    const [rem] = state.counts.splice(di, 1);
+    state.counts.splice(ti, 0, rem);
+  }
+  save(); render();
+}
+function handleNavDragEnd(e) { e.currentTarget.style.opacity='1'; navDragId=null; navDragType=null; }
+
+// ---- Element paragraph drag ----
+function handleElemParaDragStart(e) {
+  draggedElemPara = {
+    countId: e.currentTarget.dataset.epCount,
+    elemIdx: parseInt(e.currentTarget.dataset.epElem),
+    paraIdx: parseInt(e.currentTarget.dataset.epIdx)
+  };
+  e.currentTarget.style.opacity = '0.4';
+  e.stopPropagation();
+}
+function handleElemParaDragOver(e) { e.preventDefault(); e.stopPropagation(); }
+function handleElemParaDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  if (!draggedElemPara) return;
+  const tCount = e.currentTarget.dataset.epCount;
+  const tElem  = parseInt(e.currentTarget.dataset.epElem);
+  const tPara  = parseInt(e.currentTarget.dataset.epIdx);
+  if (draggedElemPara.countId !== tCount || draggedElemPara.elemIdx !== tElem) return;
+  if (draggedElemPara.paraIdx === tPara) return;
+  const count = state.counts.find(c=>c.id===tCount); if(!count) return;
+  const elem  = count.elements[tElem];                if(!elem||!elem.paragraphs) return;
+  const [rem] = elem.paragraphs.splice(draggedElemPara.paraIdx, 1);
+  elem.paragraphs.splice(tPara, 0, rem);
+  elem.paragraphs.forEach((p,i) => p.order = i);
+  save(); render();
+}
+function handleElemParaDragEnd(e) { e.currentTarget.style.opacity='1'; draggedElemPara=null; }
+
+render();
+</script>
+</body>
+</html>
