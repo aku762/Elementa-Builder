@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="./elementa-builder.html"><strong>→ Launch the App</strong></a>
+  <a href="https://aku762.github.io/Elementa-Builder/elementa-builder.html"><strong>→ Launch the App</strong></a>
 </p>
 
 ---
@@ -42,7 +42,7 @@ The name comes from the Latin *elementa* — the basic principles, the first par
 
 **Option 1 — Use it in your browser (no install needed)**
 
-[Launch Elementa Builder →](./elementa-builder.html)
+[Launch Elementa Builder →](https://aku762.github.io/Elementa-Builder/elementa-builder.html)
 
 **Option 2 — Install it as an app (PWA)**
 
@@ -81,9 +81,11 @@ This was a deliberate choice. Legal documents are sensitive. The tool should wor
 
 ## Background
 
-This tool was built as a companion to the [Jurisdictionary course](https://jurisdictionary.com) — a practical course on how to litigate your own case. Jurisdictionary teaches the method; Elementa Builder is the drafting environment that puts that method into practice.
+This tool was built as a companion to the [Jurisdictionary course](https://www.howtowinincourt.com/?refercode=KA0037) — a practical course on how to litigate your own case. Jurisdictionary teaches the method; Elementa Builder is the drafting environment that puts that method into practice.
 
 If you're interested in understanding how the legal system actually works and how to navigate it as a pro se litigant, the course is worth a look. It's already paid for itself.
+
+*Disclosure: this is an affiliate link — I earn a small commission at no cost to you if you purchase through it.*
 
 ---
 
